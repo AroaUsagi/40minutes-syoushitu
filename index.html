@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>LAB TERMINAL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap');
+:root {
+  --bg: #080c10;
+  --surface: #0d1219;
+  --border: #1e2d3d;
+  --accent: #c8a96e;
+  --accent2: #e8d5a3;
+  --text: #c9d4dc;
+  --text-dim: #5a6a78;
+  --red: #c0392b;
+  --green: #2ecc71;
+  --glow: rgba(200, 169, 110, 0.15);
+}
+#briefing-container * { margin: 0; padding: 0; box-sizing: border-box; }
+#briefing-container {
+  position: fixed; inset: 0; background: var(--bg);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  color: var(--text); overflow: hidden; cursor: default; z-index: 10000;
+}
+#briefing-container::before {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 100;
+}
+#briefing-container::after {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none; z-index: 99;
+}
+.slide {
+  position: absolute; inset: 0; display: none; flex-direction: column;
+  align-items: center; justify-content: center; padding: 48px 60px;
+  opacity: 0; transition: opacity 0.5s ease;
+}
+.slide.active { display: flex; opacity: 1; }
+.slide-title {
+  background: radial-gradient(ellipse at 30% 40%, rgba(200,169,110,0.06) 0%, transparent 60%),
+    linear-gradient(160deg, #080c10 0%, #0a1018 100%);
+}
+.classified-stamp {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 6px;
+  color: var(--red); border: 1.5px solid var(--red); padding: 4px 16px;
+  opacity: 0.85; margin-bottom: 48px; animation: flicker 4s infinite;
+}
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 0.85; } 96% { opacity: 0.3; }
+  97% { opacity: 0.85; } 98% { opacity: 0.5; } 99% { opacity: 0.85; }
+}
+.title-group { text-align: center; margin-bottom: 56px; }
+.title-en {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  letter-spacing: 8px; color: var(--text-dim); margin-bottom: 20px; text-transform: uppercase;
+}
+.title-jp {
+  font-family: 'Noto Serif JP', serif; font-size: clamp(48px, 7vw, 80px);
+  font-weight: 700; color: var(--accent2); letter-spacing: 0.15em; line-height: 1.2;
+  text-shadow: 0 0 40px rgba(200,169,110,0.4);
+}
+.title-sub {
+  margin-top: 16px; font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; letter-spacing: 4px; color: var(--accent); opacity: 0.7;
+}
+.divider {
+  width: 200px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: 0 auto 48px;
+}
+.notice-label {
+  font-family: 'Share Tech Mono', monospace; font-size: 12px;
+  letter-spacing: 5px; color: var(--text-dim); margin-bottom: 12px;
+}
+.notice-title {
+  font-family: 'Noto Serif JP', serif; font-size: clamp(22px, 3vw, 34px);
+  font-weight: 300; color: var(--text); letter-spacing: 0.3em;
+}
+.start-hint {
+  position: absolute; bottom: 40px; font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; letter-spacing: 3px; color: var(--text-dim); animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
+.slide-notice {
+  background: radial-gradient(ellipse at 70% 30%, rgba(200,169,110,0.04) 0%, transparent 50%), var(--bg);
+}
+.notice-wrapper { width: 90vw; max-width: 1200px; }
+.notice-header {
+  display: flex; align-items: baseline; gap: 20px; margin-bottom: 36px;
+  border-bottom: 1px solid var(--border); padding-bottom: 24px;
+}
+.notice-num {
+  font-family: 'Share Tech Mono', monospace; font-size: clamp(48px, 7vw, 80px);
+  color: var(--accent); line-height: 1; opacity: 0.25; letter-spacing: -2px;
+}
+.notice-heading {
+  font-family: 'Noto Serif JP', serif; font-size: clamp(26px, 3.5vw, 42px);
+  font-weight: 700; color: var(--accent2); letter-spacing: 0.1em; line-height: 1.4;
+}
+.notice-body {
+  font-size: clamp(20px, 2.4vw, 28px); font-weight: 300; line-height: 2.1;
+  color: var(--text); letter-spacing: 0.05em; padding-left: 4px;
+  word-break: keep-all; overflow-wrap: break-word;
+}
+.notice-body em {
+  font-style: normal; color: var(--accent2); font-weight: 700;
+  border-bottom: 1px solid rgba(200,169,110,0.4); padding-bottom: 1px;
+}
+.notice-body .note {
+  display: block; margin-top: 16px; font-size: 0.85em; color: var(--text-dim);
+  padding-left: 1em; border-left: 2px solid var(--border); line-height: 1.8;
+}
+.corner { position: absolute; width: 24px; height: 24px; }
+.corner-tl { top:32px;left:32px;border-top:1.5px solid var(--border);border-left:1.5px solid var(--border); }
+.corner-tr { top:32px;right:32px;border-top:1.5px solid var(--border);border-right:1.5px solid var(--border); }
+.corner-bl { bottom:32px;left:32px;border-bottom:1.5px solid var(--border);border-left:1.5px solid var(--border); }
+.corner-br { bottom:32px;right:32px;border-bottom:1.5px solid var(--border);border-right:1.5px solid var(--border); }
+.page-indicator {
+  position: absolute; bottom: 40px; right: 48px;
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  letter-spacing: 2px; color: var(--text-dim);
+}
+.nav-dots {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px;
+}
+.dot { width:5px;height:5px;border-radius:50%;background:var(--border);cursor:pointer;transition:background 0.3s; }
+.dot.active { background: var(--accent); }
+.nav-btn {
+  position: absolute; bottom: 32px; background: none; border: 1px solid var(--border);
+  color: var(--text-dim); font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; letter-spacing: 2px; padding: 8px 20px; cursor: pointer; transition: all 0.2s;
+}
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-prev { left: 48px; } .nav-next { right: 48px; }
+.key-hint {
+  position: absolute; top: 32px; right: 48px;
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  letter-spacing: 2px; color: var(--text-dim); opacity: 0.5;
+}
+body { margin:0; background:#05080d; color:#e6f1ff; font-family:"Consolas",monospace; }
+.container { display:none; grid-template-columns:2fr 1fr; height:100vh; }
+.panel { border:1px solid #1f3b5a; padding:15px; box-sizing:border-box; display:flex; flex-direction:column; min-height:0; }
+.header { font-size:22px; letter-spacing:2px; margin-bottom:10px; color:#7dd3ff; }
+.log { background:#02050a; flex:1; min-height:0; overflow-y:auto; padding:10px; border:1px solid #123; margin-bottom:10px; font-size:28px; line-height:1.6; }
+.input-area { margin-top:10px; }
+.command-suggestions { position:absolute; top:50px; left:0; right:0; background:#0a1628; border:2px solid #1e90ff; border-radius:4px; max-height:100px; overflow-y:auto; display:none; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.5); }
+.suggestion-item { padding:5px 15px; cursor:pointer; border-bottom:1px solid #1e3a5f; display:flex; justify-content:space-between; align-items:center; }
+.suggestion-item:hover { background:#1e3a5f; }
+.suggestion-item:last-child { border-bottom:none; }
+.suggestion-cmd { color:#00ff00; font-weight:bold; font-size:16px; }
+.suggestion-desc { color:#aaa; font-size:16px; margin-left:15px; font-weight:bold; letter-spacing:1px; }
+input { width:100%; background:black; color:#7dd3ff; border:1px solid #1f3b5a; padding:8px; font-size:16px; box-sizing:border-box; }
+input:disabled { background:#111; color:#555; border:1px solid #400; cursor:not-allowed; }
+button { margin-top:8px; width:100%; background:#0b1c2d; color:#7dd3ff; border:1px solid #1f3b5a; padding:8px; cursor:pointer; font-size:16px; }
+button:hover { background:#102b45; }
+button:disabled { background:#111; color:#555; border:1px solid #400; cursor:not-allowed; }
+.locked-indicator { text-align:center; font-size:14px; color:#ff4d4d; margin-top:4px; letter-spacing:1px; animation:alertFlash 1s infinite; padding:4px; }
+.status { font-size:32px; margin-top:6px; font-weight:bold; text-align:center; letter-spacing:1px; }
+.timer { font-size:68px; color:#4ade80; font-weight:bold; text-align:center; letter-spacing:3px; transition:color 0.5s ease; }
+.monitor-frame { width:300px; height:300px; margin:10px auto; border:1px solid #1f3b5a; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.circle { width:200px; height:200px; border-radius:50%; border:3px solid #ff6b6b; position:absolute; transition:width 1s ease,height 1s ease,left 0.8s ease,top 0.8s ease; background:rgba(255,0,0,0.1); }
+.lab { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#7dd3ff; font-size:13px; line-height:1.1; font-weight:bold; border:2px solid #1f3b5a; padding:0; background:rgba(0,0,0,0.7); z-index:20; text-align:center; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
+.device-marker { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:16px; height:16px; background:#ff6b6b; border:2px solid #fff; border-radius:50%; box-shadow:0 0 10px #ff6b6b,0 0 20px #ff0000; z-index:10; animation:deviceBlink 1.5s infinite; transition:left 0.8s ease,top 0.8s ease; }
+.device-marker::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:6px; height:6px; background:#fff; border-radius:50%; }
+@keyframes deviceBlink { 0%{opacity:1;box-shadow:0 0 10px #ff6b6b,0 0 20px #ff0000;} 50%{opacity:0.3;box-shadow:0 0 5px #ff6b6b,0 0 10px #ff0000;} 100%{opacity:1;box-shadow:0 0 10px #ff6b6b,0 0 20px #ff0000;} }
+.radius-label { text-align:center; color:#ffb3b3; font-size:36px; font-weight:bold; margin-top:6px; }
+.download-ready { color:#7dd3ff; font-size:20px; font-weight:bold; text-align:center; }
+.download-complete { color:#00ff99; font-size:20px; font-weight:bold; text-align:center; animation:glowGreen 1.5s infinite; }
+.download-idle { color:#444; font-size:18px; text-align:center; }
+@keyframes glowGreen { 0%{text-shadow:0 0 5px #00ff99;} 50%{text-shadow:0 0 15px #00ff99;} 100%{text-shadow:0 0 5px #00ff99;} }
+.info-box { margin-top:8px; padding:12px; border:1px solid #1f3b5a; background:#02050a; }
+@keyframes alertFlash { 0%{background:#400;} 50%{background:#800;} 100%{background:#400;} }
+@keyframes alertFlashGreen { 0%{box-shadow:0 0 10px #00ff99;} 50%{box-shadow:0 0 25px #00ff99;} 100%{box-shadow:0 0 10px #00ff99;} }
+.alert-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(120,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:9999; }
+.alert-box { border:3px solid #ff4d4d; padding:40px; background:black; color:#ff4d4d; font-size:28px; text-align:center; max-width:80%; }
+</style>
+</head>
+<body>
+
+<!-- BRIEFING SLIDES -->
+<div id="briefing-container">
+  <div class="slide slide-title active" id="slide-0">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="classified-stamp">CLASSIFIED — OPERATION BRIEFING</div>
+    <div class="title-group">
+      <div class="title-en">paradox presents</div>
+      <div class="title-jp">30分後の消失</div>
+      <div class="title-sub">DISAPPEARANCE IN 30 MINUTES</div>
+    </div>
+    <div class="divider"></div>
+    <div class="notice-label">PRE-MISSION BRIEFING</div>
+    <div class="notice-title">注 意 事 項</div>
+    <div class="start-hint">▶ CLICK TO PROCEED</div>
+    <div class="key-hint">← → KEY or CLICK</div>
+  </div>
+  <div class="slide slide-notice" id="slide-1">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper">
+      <div class="notice-header"><div class="notice-num">01</div><div class="notice-heading">安全に関する行動制限</div></div>
+      <div class="notice-body">部屋の中にあるものを<em>無理やり開けて壊したり</em>、<em>室内を走ったり</em>するなど、危険な行為はお控えください。</div>
+    </div>
+    <div class="nav-dots" id="dots"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <button class="nav-btn nav-next" onclick="changeSlide(1)">NEXT ▶</button>
+    <div class="page-indicator">01 / 06</div>
+  </div>
+  <div class="slide slide-notice" id="slide-2">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper">
+      <div class="notice-header"><div class="notice-num">02</div><div class="notice-heading">スタッフの説明中は手を止めること</div></div>
+      <div class="notice-body">ゲーム開始後、私たちは皆様の<em>仲間のスパイ</em>という設定で進行します。私たちが話している間は、<em>必ず手を止めて</em>お聞きいただきますようお願いいたします。</div>
+    </div>
+    <div class="nav-dots" id="dots2"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <button class="nav-btn nav-next" onclick="changeSlide(1)">NEXT ▶</button>
+    <div class="page-indicator">02 / 06</div>
+  </div>
+  <div class="slide slide-notice" id="slide-3">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper">
+      <div class="notice-header"><div class="notice-num">03</div><div class="notice-heading">資料は必ず一読すること</div></div>
+      <div class="notice-body">この公演では様々な<em>資料・ステップシート</em>が登場します。いずれの資料にも大事な情報が載っています。渡された資料には<em>必ず一度目を通して</em>からゲームを進めてください。</div>
+    </div>
+    <div class="nav-dots" id="dots3"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <button class="nav-btn nav-next" onclick="changeSlide(1)">NEXT ▶</button>
+    <div class="page-indicator">03 / 06</div>
+  </div>
+  <div class="slide slide-notice" id="slide-4">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper">
+      <div class="notice-header"><div class="notice-num">04</div><div class="notice-heading">サブミッションについて</div></div>
+      <div class="notice-body">ゲーム内では「<em>サブミッション</em>」として20枚の謎解きが登場します。基本的にはゲームクリア後の余り時間でお楽しみいただくものですが、<em>一部はストーリーの進行に関わります。</em>
+        <span class="note">ゲーム中に資料などを参考にして解く必要があるものもありますので、ご注意ください。</span>
+      </div>
+    </div>
+    <div class="nav-dots" id="dots4"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <button class="nav-btn nav-next" onclick="changeSlide(1)">NEXT ▶</button>
+    <div class="page-indicator">04 / 06</div>
+  </div>
+  <div class="slide slide-notice" id="slide-5">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper">
+      <div class="notice-header"><div class="notice-num">05</div><div class="notice-heading">ヒントのリクエストについて</div></div>
+      <div class="notice-body">行き詰まった場合は、私たちが<em>ヒントを出すことができます。</em>遠慮なく気軽にお声掛けください。</div>
+    </div>
+    <div class="nav-dots" id="dots5"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <button class="nav-btn nav-next" onclick="changeSlide(1)">NEXT ▶</button>
+    <div class="page-indicator">05 / 06</div>
+  </div>
+  <div class="slide slide-notice" id="slide-6">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="key-hint">← → KEY or CLICK</div>
+    <div class="notice-wrapper" style="text-align:center;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:5px;color:var(--text-dim);margin-bottom:36px;">BRIEFING COMPLETE</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:clamp(22px,3vw,36px);font-weight:300;color:var(--text);letter-spacing:0.25em;line-height:2.2;margin-bottom:48px;">
+        ここまで、何かご不明な点は<span style="color:var(--accent2);font-weight:700;">ございますでしょうか？</span>
+      </div>
+      <div style="width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:0 auto 48px;"></div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:clamp(22px,3.5vw,42px);font-weight:700;color:var(--accent2);letter-spacing:0.2em;text-shadow:0 0 40px rgba(200,169,110,0.5);">
+        30分後の消失、<br>スタートです。
+      </div>
+    </div>
+    <div class="nav-dots" id="dots6"></div>
+    <button class="nav-btn nav-prev" onclick="changeSlide(-1)">◀ PREV</button>
+    <div class="page-indicator">06 / 06</div>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div class="container">
+  <div class="panel">
+    <div class="header">LAB TERMINAL :: COMMAND</div>
+    <div class="log" id="log"></div>
+    <div style="margin-top:auto;position:relative;">
+      <div id="commandSuggestions" class="command-suggestions"></div>
+      <div class="input-area">
+        <input id="commandInput" placeholder="コマンド入力" onkeydown="if(event.key==='Enter'){playClickSound();sendCommand();}" oninput="updateCommandSuggestions()" onfocus="updateCommandSuggestions()" />
+        <div id="lockIndicator" class="locked-indicator" style="display:none;">⛔ COMMAND INPUT LOCKED</div>
+        <button id="cmdBtn" onclick="playClickSound();sendCommand()">実行</button>
+      </div>
+      <div class="input-area">
+        <input id="passwordInput" placeholder="パスワード／解答入力" onkeydown="if(event.key==='Enter'){playClickSound();sendPassword();}" />
+        <button onclick="playClickSound();sendPassword()">認証／送信</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="header">消失装置 STATUS</div>
+    <div id="devicePanel" style="display:none;">
+      <div class="timer" id="timer">40:00</div>
+      <div class="monitor-frame">
+        <div class="circle" id="circle"></div>
+        <div class="device-marker" id="deviceMarker"></div>
+        <div class="lab" id="labBox">LAB<br>2×4</div>
+      </div>
+      <div class="radius-label">消失半径: <span id="radius">9</span> m</div>
+      <div class="status" id="statusText">消失装置 起動中</div>
+    </div>
+    <div id="hiddenInfo" style="text-align:center;color:#666;margin-top:40px;font-size:16px;">
+      対侵入者システム 未作動<br>消失装置情報 非表示
+    </div>
+    <div class="info-box" style="margin-top:auto;">
+      <div style="font-size:13px;color:#7dd3ff;letter-spacing:1px;margin-bottom:4px;">▶ DOWNLOAD STATUS</div>
+      <div id="downloadStatus" class="download-idle" style="margin-bottom:10px;">-- 待機中 --</div>
+      <div style="border-top:1px solid #1f3b5a;padding-top:8px;">
+        <div style="font-size:13px;color:#7dd3ff;margin-bottom:4px;letter-spacing:1px;">情報取得率</div>
+        <div style="font-size:42px;color:#00ff99;font-weight:bold;text-align:center;"><span id="infoRate">0</span>%</div>
+        <div style="font-size:13px;color:#555;text-align:center;margin-top:4px;">解読済み: <span id="solvedCount">0</span> / 20</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="alert" class="alert-overlay"><div class="alert-box" id="alertBox"></div></div>
+
+<!-- BGM：同じフォルダに「消失BGM.m4a」を置いてください -->
+<audio id="bgm" src="消失BGM.m4a" loop></audio>
+
+<script>
+// ==========================================
+// 設定
+// ==========================================
+const RESOURCE_NUMBERS = {
+  'doc1-1':'8472','doc1-2':'5394','doc2-1':'3928',
+  'doc2-2':'6150','doc3-1':'2085','doc3-2':'7416'
+};
+const BOOK_SUBMISSION_NUMBERS = {
+  book1:'NO.12',book2:'NO.5',book3:'NO.11',book4:'NO.6',book5:'NO.17'
+};
+const UNLOCK_PASSWORD = ['かいきん','解禁','kaikin'];
+const submissionAnswers = [
+  ['rabo','らぼ'],['mail','めーる','メール'],['うちゅう','うちゆう','宇宙'],
+  ['かいしちてん','開始地点'],['ゆうち','ユウチ','有地','誘致','勇知','遊地','遊治'],
+  ['いへん','異変'],['ナトリウム','なとりうむ','natoriumu','na'],
+  ['チェロ','ちぇろ','chero','cello'],['本','ほん','hon'],
+  ['さいせんばこ','さいせん箱','賽銭箱'],['とんや','問屋'],['しんり','心理'],
+  ['ほしぞら','星空'],['nazo','なぞ','謎'],['スター','すたー','star'],
+  ['ANSWER','あんさー','answer'],['ライフ','らいふ','life'],
+  ['ensou','えんそう','演奏'],['じゃんけん','ジャンケン','janken'],
+  ['ESCAPE','えすけーぷ','escape']
+];
+
+// ==========================================
+// ゲーム状態
+// ==========================================
+let time=2400, radius=9;
+const MAX_RADIUS=15, MIN_RADIUS=0;
+let timerStarted=false, timerInterval;
+let intrusionTriggered=false, commandLocked=false;
+let deviceRunning=false, vaultOpen=false;
+let solvedSubmissions=new Set();
+let warned10min=false, warned5min=false, warned1min=false;
+let infoRate=0, deviceX=50, deviceY=50;
+let downloadReadyResource=null, downloadedResource=null, downloadComplete=false;
+let isCommandProcessing=false, isPasswordProcessing=false;
+
+// ==========================================
+// BGM制御
+// ==========================================
+var bgmStarted=false;
+var bgmSpedUp=false;
+
+function startBgm(){
+  var audio=document.getElementById('bgm');
+  if(!audio) return;
+  audio.volume=0.15;
+  var tryPlay=function(){
+    if(bgmStarted) return;
+    audio.play().then(function(){
+      bgmStarted=true;
+      document.removeEventListener('click',tryPlay);
+      document.removeEventListener('keydown',tryPlay);
+    }).catch(function(){});
+  };
+  tryPlay();
+  document.addEventListener('click',tryPlay);
+  document.addEventListener('keydown',tryPlay);
+}
+
+// 残り5分でBGMを1.3倍速に（緊迫感アップ）
+function speedUpBgm(){
+  if(bgmSpedUp) return;
+  bgmSpedUp=true;
+  var audio=document.getElementById('bgm');
+  if(audio) audio.playbackRate=1.3;
+}
+
+function stopBgm(){
+  var audio=document.getElementById('bgm');
+  if(audio) audio.pause();
+}
+
+// ==========================================
+// 正規化
+// ==========================================
+function normalize(str){
+  return str.toLowerCase()
+    .replace(/[ァ-ヶ]/g,s=>String.fromCharCode(s.charCodeAt(0)-0x60))
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0));
+}
+let inLabResources=new Set([normalize(RESOURCE_NUMBERS['doc3-2'])]);
+let commandHistory=new Set(['こたつ']);
+
+// ==========================================
+// AudioContext サウンド
+// ==========================================
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq,type,vol,dur){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.value=freq;o.type=type;
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  o.start();o.stop(audioCtx.currentTime+dur);
+}
+function playClickSound(){beep(800,'square',1.0,0.05);}
+function playErrorSound(){
+  const now=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.setValueAtTime(250,now);o.frequency.exponentialRampToValueAtTime(100,now+0.3);
+  o.type='sawtooth';g.gain.setValueAtTime(1.0,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+  o.start();o.stop(now+0.3);
+}
+function playWarningSound(){beep(440,'triangle',1.0,0.15);}
+function playInfoGetSound(){beep(900,'sine',1.0,0.15);}
+function playActivateSound(){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.setValueAtTime(100,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(600,audioCtx.currentTime+0.5);
+  o.type='sawtooth';g.gain.setValueAtTime(1.0,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.5);
+  o.start();o.stop(audioCtx.currentTime+0.5);
+}
+function playDeactivateSound(){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.setValueAtTime(600,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(100,audioCtx.currentTime+0.4);
+  o.type='sawtooth';g.gain.setValueAtTime(1.0,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+  o.start();o.stop(audioCtx.currentTime+0.4);
+}
+function playSuccessSound(){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.setValueAtTime(523,audioCtx.currentTime);
+  o.frequency.setValueAtTime(659,audioCtx.currentTime+0.1);
+  o.frequency.setValueAtTime(784,audioCtx.currentTime+0.2);
+  o.type='sine';g.gain.setValueAtTime(1.0,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.3);
+  o.start();o.stop(audioCtx.currentTime+0.3);
+}
+function playLogSound(){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.frequency.value=1000+Math.random()*400;o.type='square';
+  g.gain.setValueAtTime(0.6,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.03);
+  o.start();o.stop(audioCtx.currentTime+0.03);
+}
+function playHorrorSound1(){
+  const now=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+  o1.connect(g1);g1.connect(audioCtx.destination);o1.type='sawtooth';
+  o1.frequency.setValueAtTime(80,now);o1.frequency.exponentialRampToValueAtTime(40,now+2);
+  g1.gain.setValueAtTime(1.0,now);g1.gain.setValueAtTime(1.0,now+1.8);g1.gain.exponentialRampToValueAtTime(0.001,now+2);
+  o1.start(now);o1.stop(now+2);
+  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+  o2.connect(g2);g2.connect(audioCtx.destination);o2.type='triangle';o2.frequency.value=666;
+  g2.gain.setValueAtTime(0.7,now);g2.gain.exponentialRampToValueAtTime(0.001,now+2);
+  o2.start(now);o2.stop(now+2);
+  for(let i=0;i<8;i++){
+    const o3=audioCtx.createOscillator(),g3=audioCtx.createGain();
+    o3.connect(g3);g3.connect(audioCtx.destination);o3.type='square';o3.frequency.value=200;
+    const t=now+i*0.25;
+    g3.gain.setValueAtTime(0,t);g3.gain.setValueAtTime(0.8,t+0.01);g3.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+    o3.start(t);o3.stop(t+0.1);
+  }
+}
+function playHorrorSound2(){
+  const now=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+  o1.connect(g1);g1.connect(audioCtx.destination);o1.type='sawtooth';
+  o1.frequency.setValueAtTime(50,now);o1.frequency.exponentialRampToValueAtTime(30,now+3);
+  g1.gain.setValueAtTime(1.0,now);g1.gain.setValueAtTime(1.0,now+2.8);g1.gain.exponentialRampToValueAtTime(0.001,now+3);
+  o1.start(now);o1.stop(now+3);
+  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+  o2.connect(g2);g2.connect(audioCtx.destination);o2.type='sine';o2.frequency.value=7;
+  g2.gain.setValueAtTime(0.5,now);g2.gain.exponentialRampToValueAtTime(0.001,now+3);
+  o2.start(now);o2.stop(now+3);
+  const o3=audioCtx.createOscillator(),g3=audioCtx.createGain();
+  o3.connect(g3);g3.connect(audioCtx.destination);o3.type='triangle';
+  o3.frequency.setValueAtTime(500,now);o3.frequency.exponentialRampToValueAtTime(100,now+3);
+  g3.gain.setValueAtTime(0.8,now);g3.gain.exponentialRampToValueAtTime(0.001,now+3);
+  o3.start(now);o3.stop(now+3);
+  const o4=audioCtx.createOscillator(),g4=audioCtx.createGain();
+  o4.connect(g4);g4.connect(audioCtx.destination);o4.type='square';o4.frequency.value=100;
+  g4.gain.setValueAtTime(1.0,now);g4.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+  o4.start(now);o4.stop(now+0.3);
+}
+function playTimerWarningSound(){
+  const now=audioCtx.currentTime;
+  for(let i=0;i<3;i++){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.value=800;
+    const t=now+i*0.4;
+    g.gain.setValueAtTime(0,t);g.gain.setValueAtTime(0.8,t+0.01);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+    o.start(t);o.stop(t+0.3);
+  }
+}
+function playDisappearanceSound(){
+  const now=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+  o1.connect(g1);g1.connect(audioCtx.destination);o1.type='sine';
+  o1.frequency.setValueAtTime(30,now);o1.frequency.exponentialRampToValueAtTime(15,now+4);
+  g1.gain.setValueAtTime(0,now);g1.gain.setValueAtTime(2.0,now+0.5);g1.gain.setValueAtTime(2.0,now+3);g1.gain.exponentialRampToValueAtTime(0.001,now+4);
+  o1.start(now);o1.stop(now+4);
+  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+  o2.connect(g2);g2.connect(audioCtx.destination);o2.type='sawtooth';
+  o2.frequency.setValueAtTime(60,now);o2.frequency.setValueAtTime(45,now+2);o2.frequency.exponentialRampToValueAtTime(20,now+4);
+  g2.gain.setValueAtTime(1.8,now);g2.gain.setValueAtTime(1.8,now+3);g2.gain.exponentialRampToValueAtTime(0.001,now+4);
+  o2.start(now);o2.stop(now+4);
+  const o3=audioCtx.createOscillator(),g3=audioCtx.createGain();
+  o3.connect(g3);g3.connect(audioCtx.destination);o3.type='triangle';
+  o3.frequency.setValueAtTime(3,now);o3.frequency.setValueAtTime(7,now+2);o3.frequency.setValueAtTime(2,now+4);
+  g3.gain.setValueAtTime(1.5,now);g3.gain.exponentialRampToValueAtTime(0.001,now+4);
+  o3.start(now);o3.stop(now+4);
+  const o4=audioCtx.createOscillator(),g4=audioCtx.createGain();
+  o4.connect(g4);g4.connect(audioCtx.destination);o4.type='square';o4.frequency.value=80;
+  g4.gain.setValueAtTime(2.0,now);g4.gain.exponentialRampToValueAtTime(0.001,now+0.5);
+  o4.start(now);o4.stop(now+0.5);
+  const o5=audioCtx.createOscillator(),g5=audioCtx.createGain();
+  o5.connect(g5);g5.connect(audioCtx.destination);o5.type='square';o5.frequency.value=40;
+  g5.gain.setValueAtTime(0,now+1);g5.gain.setValueAtTime(1.8,now+1.1);g5.gain.exponentialRampToValueAtTime(0.001,now+2);
+  o5.start(now+1);o5.stop(now+2);
+}
+function playSirenSound(){
+  const now=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+  o1.connect(g1);g1.connect(audioCtx.destination);o1.type='sawtooth';
+  for(let i=0;i<6;i++){const t=i*0.4;o1.frequency.setValueAtTime(250,now+t);o1.frequency.linearRampToValueAtTime(1000,now+t+0.2);}
+  g1.gain.setValueAtTime(1.0,now);g1.gain.setValueAtTime(1.0,now+2.4);g1.gain.exponentialRampToValueAtTime(0.001,now+2.8);
+  o1.start(now);o1.stop(now+2.8);
+  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+  o2.connect(g2);g2.connect(audioCtx.destination);o2.type='sine';o2.frequency.value=60;
+  for(let i=0;i<12;i++){const t=i*0.2;g2.gain.setValueAtTime(0,now+t);g2.gain.setValueAtTime(1.0,now+t+0.05);g2.gain.setValueAtTime(0,now+t+0.1);}
+  o2.start(now);o2.stop(now+2.8);
+  const o3=audioCtx.createOscillator(),g3=audioCtx.createGain();
+  o3.connect(g3);g3.connect(audioCtx.destination);o3.type='triangle';o3.frequency.value=137;
+  g3.gain.setValueAtTime(0.6,now);g3.gain.exponentialRampToValueAtTime(0.001,now+2.8);
+  o3.start(now);o3.stop(now+2.8);
+}
+
+// ==========================================
+// 爆発音（AudioContextで合成・外部ファイル不要）
+// ==========================================
+function playExplosionSound() {
+  stopBgm();
+  setTimeout(function() {
+    const now = audioCtx.currentTime;
+    const boom = audioCtx.createOscillator();
+    const bGain = audioCtx.createGain();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(100, now);
+    boom.frequency.exponentialRampToValueAtTime(10, now + 2.5);
+    bGain.gain.setValueAtTime(5.0, now);
+    bGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+    boom.connect(bGain);
+    bGain.connect(audioCtx.destination);
+    boom.start(now);
+    boom.stop(now + 2.5);
+
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 3, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.2);
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buf;
+    const nGain = audioCtx.createGain();
+    const nFilter = audioCtx.createBiquadFilter();
+    nFilter.type = 'lowpass';
+    nFilter.frequency.setValueAtTime(1000, now);
+    nFilter.frequency.exponentialRampToValueAtTime(40, now + 2.0);
+    nGain.gain.setValueAtTime(30.0, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + 3.0);
+
+    const buf2 = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.8, audioCtx.sampleRate);
+    const data2 = buf2.getChannelData(0);
+    for (let i = 0; i < data2.length; i++) {
+      data2[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data2.length, 2);
+    }
+    const crack = audioCtx.createBufferSource();
+    const cGain = audioCtx.createGain();
+    crack.buffer = buf2;
+    cGain.gain.setValueAtTime(4.0, now);
+    cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    crack.connect(cGain);
+    cGain.connect(audioCtx.destination);
+    crack.start(now);
+    crack.stop(now + 0.8);
+  }, 2500);
+}
+
+// ==========================================
+// UI
+// ==========================================
+function log(msg){
+  playLogSound();
+  const box=document.getElementById('log');
+  let m=msg.replace(/(AUTH SUCCESS|SYSTEM STATUS|SYSTEM|SUBMISSION|AUTH|SECURITY)\s*::/g,'<span style="color:#ffffff">$1 ::</span>');
+  box.innerHTML+=m+'<br>';box.scrollTop=box.scrollHeight;
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function updateTimer(){
+  const m=String(Math.floor(time/60)).padStart(2,'0');
+  const s=String(time%60).padStart(2,'0');
+  const el=document.getElementById('timer');
+  el.innerText=`${m}:${s}`;
+  if(time>600){el.style.color='#4ade80';}
+  else if(time>300){el.style.color='#fbbf24';}
+  else if(time>60){el.style.color='#fb923c';}
+  else{el.style.color='#ef4444';}
+}
+function startTimer(){
+  if(timerStarted) return;
+  timerStarted=true;
+  timerInterval=setInterval(async()=>{
+    time--;
+    if(typeof bgmSpedUp !== 'undefined' && time===300 && !bgmSpedUp) speedUpBgm();
+    if(time===600&&!warned10min){
+      warned10min=true;playTimerWarningSound();
+      log('<span style="color:#fbbf24">!! 警告 :: 残り時間 10分 !!</span>');
+      await showTempMessage('!! TIME WARNING !!','残り時間 10分','yellow',2000);
+    }else if(time===300&&!warned5min){
+      warned5min=true;playTimerWarningSound();
+      log('<span style="color:#fb923c">!! 警告 :: 残り時間 5分 !!</span>');
+      await showTempMessage('!! TIME WARNING !!','残り時間 5分','orange',2000);
+      flashScreen('#fbbf24');
+    }else if(time===60&&!warned1min){
+      warned1min=true;playTimerWarningSound();
+      log('<span style="color:#ef4444">!! 警告 :: 残り時間 1分 !!</span>');
+      await showTempMessage('!! TIME WARNING !!','残り時間 1分','red',2000);
+      flashScreen('#ef4444');
+    }
+    if (time <= 0) {
+      clearInterval(timerInterval);
+      log('>> [消失指示] 発令');
+      if (deviceRunning) {
+        const bgm = document.getElementById('bgm');
+        if (bgm) bgm.pause();
+        playExplosionSound();
+      }
+      const isCenter = (deviceX === 50 && deviceY === 50);
+      const isTooBig = (radius >= 6);
+      if (deviceRunning && (isCenter || isTooBig)) {
+        playDisappearanceSound();
+        document.getElementById('statusText').innerText = '消失実行';
+        log('SYSTEM :: 消失装置 作動 → 消失実行');
+        showTempMessage('!! 消失実行 !!', 'ラボごと消失 / GAME OVER', 'red', 99999);
+      } else if (deviceRunning && !isCenter && radius === 3) {
+        playDisappearanceSound();
+        document.getElementById('statusText').innerText = '消失完了';
+        log('SYSTEM :: ラボの一部が消失 → 脱出口が開く');
+        showTempMessage('!! 消失実行 !!', 'ラボの部分的消失を確認 / 侵入者の生存を確認', 'green', 99999);
+      } else {
+        document.getElementById('statusText').innerText = '閉じ込められた';
+        log('SYSTEM :: 消失装置停止状態 / 侵入者の生存確認');
+        showTempMessage('消失装置停止状態', '侵入者の生存確認 / CLEAR...?', 'yellow', 99999);
+      }
+    }
+    if(typeof updateTimer === 'function') updateTimer();
+  }, 1000);
+}
+function setCommandLock(state){
+  const inp=document.getElementById('commandInput');
+  const btn=document.getElementById('cmdBtn');
+  const ind=document.getElementById('lockIndicator');
+  commandLocked=state;
+  if(state){inp.disabled=true;btn.disabled=true;ind.style.display='block';inp.value='';}
+  else{inp.disabled=false;btn.disabled=false;ind.style.display='none';}
+}
+function updateMonitor(){
+  document.getElementById('radius').innerText=radius;
+  const circle=document.getElementById('circle');
+  const lab=document.getElementById('labBox');
+  const pxPerMeter=300/20;
+  lab.style.width=(4*pxPerMeter*1.2)+'px';lab.style.height=(2*pxPerMeter*1.2)+'px';
+  lab.style.display='flex';lab.style.alignItems='center';lab.style.justifyContent='center';
+  circle.style.left=deviceX+'%';circle.style.top=deviceY+'%';circle.style.transform='translate(-50%,-50%)';
+  if(!deviceRunning){circle.style.display='none';}
+  else{circle.style.display='block';const size=radius*2*pxPerMeter;circle.style.width=size+'px';circle.style.height=size+'px';}
+}
+function moveDevice(x,y){
+  deviceX=x;deviceY=y;
+  const marker=document.getElementById('deviceMarker');
+  const circle=document.getElementById('circle');
+  marker.style.left=x+'%';marker.style.top=y+'%';marker.style.transform='translate(-50%,-50%)';
+  circle.style.left=x+'%';circle.style.top=y+'%';circle.style.transform='translate(-50%,-50%)';
+}
+function updateDownloadStatus(){
+  const el=document.getElementById('downloadStatus');
+  if(downloadComplete&&downloadedResource){el.className='download-complete';el.innerText=`✔ DL完了: [${downloadedResource}]`;}
+  else if(downloadReadyResource){el.className='download-ready';el.innerText=`▶ 準備中: [${downloadReadyResource}]`;}
+  else{el.className='download-idle';el.innerText='-- 待機中 --';}
+}
+function updateInfoRate(){
+  document.getElementById('infoRate').innerText=infoRate;
+  document.getElementById('solvedCount').innerText=solvedSubmissions.size;
+}
+async function showTempMessage(title,message,type='red',duration=2000){
+  if(type==='red') playErrorSound();
+  if(type==='yellow'||type==='orange') playWarningSound();
+  if(type==='green') playSuccessSound();
+  return new Promise(resolve=>{
+    const overlay=document.getElementById('alert');
+    const box=document.getElementById('alertBox');
+    let color='#ff4d4d',bg='rgba(80,0,0,0.92)',shadow='#ff0000',anim='alertFlash 1s infinite';
+    if(type==='yellow'){color='#ffd84d';bg='rgba(0,0,0,0.85)';shadow='#ffea00';anim='none';}
+    if(type==='orange'){color='#fb923c';bg='rgba(80,40,0,0.92)';shadow='#fb923c';anim='alertFlash 1s infinite';}
+    if(type==='blue'){color='#4da6ff';bg='rgba(0,0,0,0.85)';shadow='#3399ff';anim='none';}
+    if(type==='green'){color='#4dff88';bg='rgba(0,60,30,0.92)';shadow='#00ff99';anim='alertFlashGreen 1s infinite';}
+    overlay.style.background=bg;overlay.style.animation=anim;
+    box.style.border=`3px solid ${color}`;box.style.color=color;box.style.boxShadow=`0 0 30px ${shadow}`;
+    box.innerHTML=`<div style="font-size:36px;font-weight:bold;">${title}</div><div style="margin-top:12px;font-size:20px;white-space:pre-line;">${message}</div>`;
+    overlay.style.display='flex';
+    setTimeout(()=>{overlay.style.display='none';overlay.style.animation='none';resolve();},duration);
+  });
+}
+function flashScreen(color){
+  const flash=document.createElement('div');
+  flash.style.cssText=`position:fixed;top:0;left:0;width:100%;height:100%;background-color:${color};opacity:0;pointer-events:none;z-index:9999;`;
+  document.body.appendChild(flash);
+  setTimeout(()=>{flash.style.transition='opacity 0.1s';flash.style.opacity='0.5';},10);
+  setTimeout(()=>{flash.style.opacity='0';},150);
+  setTimeout(()=>{flash.style.opacity='0.5';},300);
+  setTimeout(()=>{flash.style.opacity='0';},450);
+  setTimeout(()=>{document.body.removeChild(flash);},600);
+}
+async function displayLogsSequentially(arr,delay=200){
+  for(const l of arr){log(l);await wait(delay);}
+}
+function skipIntro(){
+  if(intrusionTriggered) return;
+  intrusionTriggered=true;
+  document.getElementById('log').innerHTML='';
+  setCommandLock(true);
+  ['SYSTEM :: 対侵入者システム 作動','SYSTEM :: 消失装置 起動','SYSTEM :: ラボ 封鎖完了',
+   'SYSTEM :: 消失プロセス 開始','SYSTEM :: 消失半径 初期値 = 9m','SYSTEM :: 30分後 [消失指示] 送信予定']
+  .forEach(l=>log(l));
+  document.getElementById('devicePanel').style.display='block';
+  document.getElementById('hiddenInfo').style.display='none';
+  document.getElementById('statusText').innerText='消失装置 起動中';
+  deviceRunning=true;updateMonitor();startTimer();
+}
+
+// ==========================================
+// コマンドサジェスト
+// ==========================================
+const commandDescriptions={'こいぬ':'金庫 開放','こたつ':'金庫 閉鎖','しまね':'ダウンロード','しまうま':'アップロード（印刷）','うみ':'消失半径 -3m','とりい':'消失半径 +3m'};
+function updateCommandSuggestions(){
+  const input=document.getElementById('commandInput');
+  const suggestBox=document.getElementById('commandSuggestions');
+  if(!suggestBox||!input) return;
+  const cur=input.value.trim();
+  if(!window.commandHistory) window.commandHistory=new Set(['こたつ']);
+  const matches=cur?Array.from(window.commandHistory).filter(c=>c.startsWith(cur)&&c!==cur):Array.from(window.commandHistory);
+  if(matches.length===0){suggestBox.style.display='none';return;}
+  suggestBox.innerHTML='';
+  matches.forEach(cmd=>{
+    const item=document.createElement('div');item.className='suggestion-item';
+    const cs=document.createElement('span');cs.className='suggestion-cmd';cs.textContent=cmd;
+    const ds=document.createElement('span');ds.className='suggestion-desc';ds.textContent=commandDescriptions[cmd]||'';
+    item.appendChild(cs);item.appendChild(ds);
+    item.onclick=()=>{input.value=cmd;suggestBox.style.display='none';input.focus();};
+    suggestBox.appendChild(item);
+  });
+  suggestBox.style.display='block';
+}
+document.addEventListener('click',(e)=>{
+  const sb=document.getElementById('commandSuggestions');
+  const inp=document.getElementById('commandInput');
+  if(sb&&inp&&!sb.contains(e.target)&&e.target!==inp) sb.style.display='none';
+});
+
+// ==========================================
+// コマンド処理
+// ==========================================
+async function sendCommand(){
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(isCommandProcessing) return;
+  isCommandProcessing=true;
+  const input=document.getElementById('commandInput');
+  const cmd=input.value.trim();
+  if(!cmd){isCommandProcessing=false;return;}
+  const validCommands=['こいぬ','こたつ','しまね','しまうま','うみ','とりい'];
+  if(validCommands.includes(cmd)){
+    if(!window.commandHistory) window.commandHistory=new Set(['こたつ']);
+    window.commandHistory.add(cmd);
+  }
+  // 裏コマンド（ドキュメント3のまま変更なし）
+  if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;return;}
+  if(/^\d{4}$/.test(cmd)){
+    const mm=parseInt(cmd.slice(0,2)),ss=parseInt(cmd.slice(2,4));
+    if(mm<=99&&ss<=59){
+      time=mm*60+ss;updateTimer();
+      warned10min=time<600;warned5min=time<300;warned1min=time<60;
+      if(time<=300&&!bgmSpedUp) speedUpBgm();
+    }
+    input.value='';isCommandProcessing=false;return;
+  }
+  if(commandLocked){
+    log('SYSTEM :: コマンド入力ロック中');
+    await showTempMessage('SYSTEM LOCKED','対侵入者システム作動中','red');
+    isCommandProcessing=false;return;
+  }
+  log(`<span style="color:#fbbf24">SYSTEM :: 「${cmd}」 入力確認</span>`);
+  await showTempMessage('COMMAND','解析中: '+cmd,'yellow',800);
+  const known=['こいぬ','こたつ','しまね','しまうま','うみ','とりい'];
+  if(!known.includes(cmd)){
+    log('SYSTEM :: 該当コマンドなし');input.value='';
+    await showTempMessage('COMMAND ERROR','コマンドが存在しません','red');
+    isCommandProcessing=false;return;
+  }
+  if(cmd==='こいぬ'){
+    if(!intrusionTriggered){
+      intrusionTriggered=true;
+      log('SYSTEM :: 金庫 開放 試行...');
+      await wait(3000);
+      log('SECURITY :: 未登録コマンド使用を検知');
+      playHorrorSound1();
+      await showTempMessage('!! SECURITY ALERT !!','不正アクセス検知 / 即座に対応します','red',2500);
+      await displayLogsSequentially([
+        'SECURITY :: コマンド送信元 解析中...','SECURITY :: 認証ID 不一致',
+        'SECURITY :: 登録ユーザー照合 失敗','SECURITY :: 生体認証 失敗',
+        'SECURITY :: 権限レベル = NONE','SECURITY :: アクセス権限 なし',
+        'SECURITY :: 侵入経路 追跡中...','SECURITY :: 脅威レベル = 最高',
+        'SECURITY :: 不正侵入フラグ = TRUE','SECURITY :: 対侵入者プロトコル 起動',
+        'SECURITY :: 金庫 開放 妨害',
+      ],300);
+      const delLogs=Array(30).fill('SYSTEM :: ログを消去します');
+      await displayLogsSequentially(delLogs,40);
+      document.getElementById('log').innerHTML='';
+      playSirenSound();
+      await showTempMessage('!! INTRUSION DETECTED !!','対侵入者システム 起動 / ラボ封鎖 / 脱出不可能','red',3500);
+      setCommandLock(true);
+      await displayLogsSequentially([
+        'SYSTEM :: 対侵入者システム 作動','SYSTEM :: 消失装置 起動シーケンス 開始',
+        'SYSTEM :: ラボ 即時封鎖','SYSTEM STATUS :: ラボ 閉鎖完了',
+        'SYSTEM :: 消失プロセス 開始',
+        '<span style="color:#ff6b6b">SYSTEM :: 消失半径を設定 初期値 = 9m</span>',
+        'SYSTEM STATUS :: 消失装置 起動完了',
+        '<span style="color:#ff6b6b">SYSTEM :: 30分後 [消失指示] 送信予定</span>',
+        '<span style="color:#ff6b6b">SYSTEM STATUS :: 金庫開放 停止</span>',
+        '<span style="color:#ff6b6b">SYSTEM STATUS :: コマンド入力欄 ロック</span>',
+        'SYSTEM :: 警告：脱出不可能',
+      ],300);
+      document.getElementById('devicePanel').style.display='block';
+      document.getElementById('hiddenInfo').style.display='none';
+      document.getElementById('statusText').innerText='消失装置 起動中';
+      deviceRunning=true;updateMonitor();startTimer();
+      playHorrorSound2();
+      await showTempMessage('!! 消失装置 起動 !!','30分後 ラボごと消失 / 生存確率 0%','red',4000);
+    }else{
+      if(vaultOpen){log('SYSTEM :: 金庫 既に開放中');await showTempMessage('金庫','すでに開放されています','yellow');}
+      else{vaultOpen=true;log('SYSTEM :: 金庫 開放');await showTempMessage('金庫 開放','アクセス許可','yellow');}
+    }
+  }
+  if(cmd==='こたつ'){
+    if(!vaultOpen){log('SYSTEM :: 金庫 既に閉鎖中');await showTempMessage('金庫','すでに閉鎖されています','yellow');}
+    else{
+      vaultOpen=false;
+      if(inLabResources.size>0){inLabResources.clear();log('SYSTEM :: 金庫 閉鎖 :: ラボ内資料 感知リスト クリア');}
+      else{log('SYSTEM :: 金庫 閉鎖');}
+      await showTempMessage('金庫 閉鎖','アクセス遮断','yellow');
+    }
+  }
+  if(cmd==='しまね'){
+    if(!downloadReadyResource){
+      log('SYSTEM :: ダウンロード対象 未指定');
+      await showTempMessage('DOWNLOAD ERROR','資料番号をパスワード欄に入力してください','red');
+    }else if(downloadComplete&&downloadedResource===downloadReadyResource){
+      log(`<span style="color:#4ade80">SYSTEM :: 資料番号 [${downloadedResource}] は既にダウンロード済みです</span>`);
+      await showTempMessage('DOWNLOAD COMPLETE','既にダウンロード済みです','green',1500);
+    }else{
+      downloadedResource=downloadReadyResource;downloadComplete=true;updateDownloadStatus();
+      log(`<span style="color:#4ade80">SYSTEM :: 資料番号 [${downloadedResource}] ダウンロード完了</span>`);
+      if(downloadedResource===normalize(RESOURCE_NUMBERS['doc3-1'])){
+        await showTempMessage('DOWNLOAD COMPLETE','ダウンロード完了','green',1500);
+        await displayLogsSequentially([
+          '<span style="color:#ff6b6b">SYSTEM :: アップロード（＝印刷）を実行する場合は、<br>     『アップロードコマンド』を入力してください。</span>',
+          '<span style="color:#ff6b6b">SYSTEM :: 『アップロードコマンド』を特定するためには、<br>     『迷路のかけら』を4枚集める必要があります。</span>',
+          '<br>',
+          '<span style="color:#ff6b6b">SYSTEM :: 以下の4冊の中にある『迷路のかけら』を使用せよ</span>',
+          `<span style="color:#ff6b6b">SYSTEM :: 本1 対応問題番号 → ${BOOK_SUBMISSION_NUMBERS.book1}</span>`,
+          `<span style="color:#ff6b6b">SYSTEM :: 本2 対応問題番号 → ${BOOK_SUBMISSION_NUMBERS.book2}</span>`,
+          `<span style="color:#ff6b6b">SYSTEM :: 本3 対応問題番号 → ${BOOK_SUBMISSION_NUMBERS.book3}</span>`,
+          `<span style="color:#ff6b6b">SYSTEM :: 本4 対応問題番号 → ${BOOK_SUBMISSION_NUMBERS.book4}</span>`,
+        ],300);
+      }else{
+        await showTempMessage('DOWNLOAD COMPLETE','ダウンロード完了','green');
+        log('<span style="color:#4ade80">SYSTEM :: ダウンロード完了</span>');
+      }
+    }
+  }
+  if(cmd==='しまうま'){
+    if(!downloadComplete||!downloadedResource){
+      log('SYSTEM :: ダウンロード済み資料なし');await showTempMessage('UPLOAD ERROR','先にダウンロードを行ってください','red');
+    }else if(downloadedResource!==normalize(RESOURCE_NUMBERS['doc3-1'])&&downloadedResource!==normalize(RESOURCE_NUMBERS['doc3-2'])){
+      log(`<span style="color:#ff6b6b">SYSTEM :: ERROR :: 資料 [${downloadedResource}] はアップロード不可</span>`);
+      await showTempMessage('UPLOAD ERROR','この資料はアップロードできません','red',3000);
+    }else if(inLabResources.has(downloadedResource)){
+      log(`<span style="color:#ff6b6b">SYSTEM :: ERROR :: 資料 [${downloadedResource}] は既にラボ内に存在します</span>`);
+      await showTempMessage('UPLOAD ERROR','この資料はすでにラボ内に存在します\nアップロード不可','red',3000);
+    }else{
+      log(`<span style="color:#4ade80">SYSTEM :: 資料 [${downloadedResource}] アップロード（印刷）完了</span>`);
+      await showTempMessage('UPLOAD COMPLETE','印刷完了\n資料を受け取ってください','green',2500);
+    }
+  }
+  if(cmd==='うみ'){
+    if(!deviceRunning){log('SYSTEM :: 消失装置 停止中');await showTempMessage('SYSTEM INFO','消失装置は停止中です','yellow');}
+    else{
+      const prev=radius;radius=Math.max(MIN_RADIUS,radius-3);updateMonitor();
+      log(`SYSTEM :: 消失半径 ${prev}m → ${radius}m`);
+      if(radius===0){
+        log('SYSTEM :: 消失半径 0m 到達');await wait(1200);
+        deviceRunning=false;updateMonitor();playDeactivateSound();
+        document.getElementById('statusText').innerText='停止中';
+        log('<span style="color:#ff6b6b">SYSTEM :: 消失装置 自動停止</span>');
+        await showTempMessage('装置 自動停止','消失装置 自動停止','green',3000);
+      }else{await showTempMessage('RADIUS -3m',`${prev}m → ${radius}m`,'yellow');}
+    }
+  }
+  if(cmd==='とりい'){
+    const prev=radius;radius=Math.min(MAX_RADIUS,radius+3);updateMonitor();
+    if(!deviceRunning){
+      playActivateSound();
+      document.getElementById('statusText').innerText='消失装置 起動中';
+      log('<span style="color:#ff6b6b">SYSTEM :: 消失装置 再起動</span>');
+      await showTempMessage('装置 再起動','消失装置 再起動','yellow',1500);
+      log(`SYSTEM :: 消失半径 0m → ${radius}m`);
+      await showTempMessage('RADIUS 拡大',`0m → ${radius}m`,'yellow',1000);
+      deviceRunning=true;const tr=radius;radius=0;updateMonitor();await wait(50);radius=tr;updateMonitor();await wait(1200);
+    }else{
+      if(prev===radius){log('SYSTEM :: 消失半径 上限到達 (15m)');await showTempMessage('RADIUS LIMIT','これ以上拡張できません','yellow');}
+      else{log(`SYSTEM :: 消失半径 ${prev}m → ${radius}m`);await showTempMessage('RADIUS +3m',`${prev}m → ${radius}m`,'yellow');}
+    }
+  }
+  isCommandProcessing=false;
+}
+
+// ==========================================
+// パスワード/解答処理
+// ==========================================
+async function sendPassword(){
+  if(isPasswordProcessing) return;
+  isPasswordProcessing=true;
+  const pw=document.getElementById('passwordInput').value.trim();
+  if(!pw){isPasswordProcessing=false;return;}
+  const normalizedUnlock=UNLOCK_PASSWORD.map(p=>normalize(p));
+  if(normalizedUnlock.includes(normalize(pw))&&commandLocked){
+    setCommandLock(false);log('<span style="color:#4ade80">AUTH SUCCESS :: コマンドロック解除</span>');
+    document.getElementById('passwordInput').value='';
+    await showTempMessage('UNLOCK SUCCESS','コマンドロック解除','green',2500);
+    isPasswordProcessing=false;return;
+  }
+  const knownNums=Object.values(RESOURCE_NUMBERS).map(n=>normalize(n));
+  const npw=normalize(pw);
+  if(knownNums.includes(npw)){
+    // ▼▼▼ 修正箇所：DL済みの同じ資料番号を入力しても準備状態に戻さない ▼▼▼
+    if(downloadComplete && downloadedResource===npw){
+      log(`<span style="color:#4ade80">SYSTEM :: 資料番号 [${pw}] は既にダウンロード済みです</span>`);
+      document.getElementById('passwordInput').value='';
+      await showTempMessage('DOWNLOAD COMPLETE','既にダウンロード済みです\n準備状態には戻りません','green',1800);
+      isPasswordProcessing=false;return;
+    }
+    // ▲▲▲ 修正箇所ここまで ▲▲▲
+    downloadReadyResource=npw;updateDownloadStatus();
+    log(`<span style="color:#4dabf7">SYSTEM :: 資料番号 [${pw}] 確認 → ダウンロード準備完了</span>`);
+    document.getElementById('passwordInput').value='';
+    await showTempMessage('RESOURCE READY',`資料番号: ${pw}\nダウンロード準備完了`,'blue',1800);
+    isPasswordProcessing=false;return;
+  }
+  let subNum=-1;
+  for(let i=0;i<submissionAnswers.length;i++){
+    if(submissionAnswers[i].map(v=>normalize(v)).includes(npw)){subNum=i+1;break;}
+  }
+  if(subNum!==-1){
+    if(solvedSubmissions.has(subNum)){
+      log(`SUBMISSION :: NO.${subNum} 「${pw}」 解読済み`);
+      document.getElementById('passwordInput').value='';
+      await showTempMessage('ALREADY SOLVED',`NO.${subNum} は解読済みです`,'yellow');
+      isPasswordProcessing=false;
+    }else{
+      solvedSubmissions.add(subNum);infoRate+=5;if(infoRate>100)infoRate=100;
+      updateInfoRate();playInfoGetSound();
+      log(`<span style="color:#4ade80">SUBMISSION :: NO.${subNum}「${pw}」正解！</span>`);
+      log(`<span style="color:#4ade80">SUBMISSION :: 情報取得率+5%→${infoRate}%</span>`);
+      document.getElementById('passwordInput').value='';
+      await showTempMessage(`CORRECT ! NO.${subNum}`,`情報取得率 ${infoRate}%`,'green');
+      if(infoRate===100){await wait(800);await showTempMessage('MISSION COMPLETE','全資料 解読完了！','green',3000);}
+      isPasswordProcessing=false;
+    }
+    return;
+  }
+  log(`ERROR :: 「${pw}」 無効な入力`);
+  document.getElementById('passwordInput').value='';
+  await showTempMessage('ERROR','無効な入力です','red');
+  isPasswordProcessing=false;
+}
+
+// ==========================================
+// スライド制御
+// ==========================================
+var TOTAL_SLIDES=7,currentSlide=0;
+function showSlide(n){
+  var slides=document.querySelectorAll('.slide');
+  if(!slides.length) return;
+  slides.forEach(function(s){s.classList.remove('active');});
+  if(slides[n]){slides[n].classList.add('active');currentSlide=n;updateDots();}
+}
+function changeSlide(dir){
+  var next=currentSlide+dir;
+  if(next>=TOTAL_SLIDES){startTerminal();return;}
+  if(next>=0&&next<TOTAL_SLIDES) showSlide(next);
+}
+function updateDots(){
+  document.querySelectorAll('.nav-dots').forEach(function(container){
+    container.innerHTML='';
+    for(var i=0;i<TOTAL_SLIDES;i++){
+      var dot=document.createElement('div');
+      dot.className='dot'+(i===currentSlide?' active':'');
+      (function(idx){dot.onclick=function(e){e.stopPropagation();showSlide(idx);};})(i);
+      container.appendChild(dot);
+    }
+  });
+}
+function startTerminal(){
+  var b=document.getElementById('briefing-container');
+  var t=document.querySelector('.container');
+  if(b) b.style.display='none';
+  if(t) t.style.display='grid';
+  startBgm();
+}
+document.addEventListener('keydown',function(e){
+  var b=document.getElementById('briefing-container');
+  if(b&&b.style.display!=='none'){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') changeSlide(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') changeSlide(-1);
+  }
+  // 裏コマンド：Ctrl+矢印で装置移動（運営専用）
+  if(e.ctrlKey){
+    if(e.key==='ArrowRight'){e.preventDefault();moveDevice(58,50);playSuccessSound();}
+    if(e.key==='ArrowLeft'){e.preventDefault();moveDevice(42,50);playSuccessSound();}
+    if(e.key==='ArrowUp'){e.preventDefault();moveDevice(50,50);playSuccessSound();}
+  }
+});
+document.addEventListener('click',function(e){
+  var b=document.getElementById('briefing-container');
+  if(b&&b.style.display!=='none'){
+    if(!e.target.closest('.nav-btn')&&!e.target.closest('.dot')) changeSlide(1);
+  }
+});
+updateDots();
+</script>
+</body>
+</html>
