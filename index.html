@@ -375,17 +375,17 @@ function startBgm(){
   var audio=document.getElementById('bgm');
   if(!audio) return;
   audio.volume=0.15;
-  var tryPlay=function(){
+  // Ctrl+Shift を同時押しでBGM開始
+  function bgmTrigger(e){
     if(bgmStarted) return;
-    audio.play().then(function(){
-      bgmStarted=true;
-      document.removeEventListener('click',tryPlay);
-      document.removeEventListener('keydown',tryPlay);
-    }).catch(function(){});
-  };
-  // 自動再生せず、最初のクリックまで待つ
-  document.addEventListener('click',tryPlay);
-  document.addEventListener('keydown',tryPlay);
+    if(e.ctrlKey && e.shiftKey){
+      audio.play().then(function(){
+        bgmStarted=true;
+        document.removeEventListener('keydown',bgmTrigger);
+      }).catch(function(){});
+    }
+  }
+  document.addEventListener('keydown',bgmTrigger);
 }
 
 // 残り5分でBGMを1.3倍速に（緊迫感アップ）
@@ -813,11 +813,17 @@ async function sendCommand(){
   // 裏コマンド（ドキュメント3のまま変更なし）
   if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;return;}
   if(/^\d{4}$/.test(cmd)){
-    const mm=parseInt(cmd.slice(0,2)),ss=parseInt(cmd.slice(2,4));
-    if(mm<=99&&ss<=59){
-      time=mm*60+ss;updateTimer();
-      warned10min=time<600;warned5min=time<300;warned1min=time<60;
-      if(time<=300&&!bgmSpedUp) speedUpBgm();
+    const resourceNums=Object.values(RESOURCE_NUMBERS).map(n=>normalize(n));
+    if(resourceNums.includes(normalize(cmd))){
+      log(`<span style="color:#ef4444">SYSTEM :: ERROR :: 資料番号 [${cmd}] は「パスワード欄」に入力してください</span>`);
+      await showTempMessage('COMMAND ERROR','資料番号はパスワード欄へ','red',2000);
+    } else {
+      const mm=parseInt(cmd.slice(0,2)),ss=parseInt(cmd.slice(2,4));
+      if(mm<=99&&ss<=59){
+        time=mm*60+ss;updateTimer();
+        warned10min=time<600;warned5min=time<300;warned1min=time<60;
+        if(time<=300&&!bgmSpedUp) speedUpBgm();
+      }
     }
     input.value='';isCommandProcessing=false;return;
   }
