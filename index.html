@@ -383,7 +383,7 @@ function startBgm(){
       document.removeEventListener('keydown',tryPlay);
     }).catch(function(){});
   };
-  tryPlay();
+  // 自動再生せず、最初のクリックまで待つ
   document.addEventListener('click',tryPlay);
   document.addEventListener('keydown',tryPlay);
 }
@@ -862,7 +862,7 @@ async function sendCommand(){
         'SYSTEM :: 消失プロセス 開始',
         '<span style="color:#ff6b6b">SYSTEM :: 消失半径を設定 初期値 = 9m</span>',
         'SYSTEM STATUS :: 消失装置 起動完了',
-        '<span style="color:#ff6b6b">SYSTEM :: 30分後 [消失指示] 送信予定</span>',
+        '<span style="color:#ff6b6b">SYSTEM :: 40分後 [消失指示] 送信予定</span>',
         '<span style="color:#ff6b6b">SYSTEM STATUS :: 金庫開放 停止</span>',
         '<span style="color:#ff6b6b">SYSTEM STATUS :: コマンド入力欄 ロック</span>',
         'SYSTEM :: 警告：脱出不可能',
@@ -895,7 +895,7 @@ async function sendCommand(){
       log(`<span style="color:#4ade80">SYSTEM :: 資料番号 [${downloadedResource}] は既にダウンロード済みです</span>`);
       await showTempMessage('DOWNLOAD COMPLETE','既にダウンロード済みです','green',1500);
     }else{
-      downloadedResource=downloadReadyResource;downloadComplete=true;updateDownloadStatus();
+      downloadedResource=downloadReadyResource;downloadComplete=true;downloadReadyResource=null;updateDownloadStatus();
       log(`<span style="color:#4ade80">SYSTEM :: 資料番号 [${downloadedResource}] ダウンロード完了</span>`);
       if(downloadedResource===normalize(RESOURCE_NUMBERS['doc3-1'])){
         await showTempMessage('DOWNLOAD COMPLETE','ダウンロード完了','green',1500);
@@ -927,6 +927,8 @@ async function sendCommand(){
     }else{
       log(`<span style="color:#4ade80">SYSTEM :: 資料 [${downloadedResource}] アップロード（印刷）完了</span>`);
       await showTempMessage('UPLOAD COMPLETE','印刷完了\n資料を受け取ってください','green',2500);
+      inLabResources.add(downloadedResource); // アップロード済みとして記録
+      downloadReadyResource=null; downloadComplete=false; downloadedResource=null; updateDownloadStatus();
     }
   }
   if(cmd==='うみ'){
