@@ -814,34 +814,44 @@ async function sendCommand(){
 
 if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;return;}
 
+// --- 4桁の数字（資料番号 or 時間変更）の判定 ---
   if(/^\d{4}$/.test(cmd)){
-    // 1. まず共通の解析演出を出す
+    // 1. 解析中演出（共通）
     await showTempMessage('COMMAND', '解析中: ' + cmd, 'yellow', 800);
 
-    // 2. 資料番号を直接指定（normalizeやRESOURCE_NUMBERSに頼らないことでエラーを防ぐ）
-    const res = ['8472', '5394', '3928', '6150', '2085', '7416'];
+    // 2. 資料番号のリスト（直接書くのが一番安全です）
+    const resourceList = ['8472', '5394', '3928', '6150', '2085', '7416'];
 
-    if(res.includes(cmd)){
-      // 3. 資料番号だった場合：ログとポップアップで警告を表示
-      log(`<span style="color:#ef4444">SYSTEM :: ERROR :: 資料番号 [${cmd}] は「パスワード欄」に入力してください</span>`);
-      input.value='';
+    if(resourceList.includes(cmd)){
+      // 3-A. 資料番号と一致した場合
+      log(`SYSTEM :: 資料番号 [${cmd}] を検知 -> パスワード欄へ誘導`);
       await showTempMessage('COMMAND ERROR', '資料番号はパスワード欄へ', 'red', 2000);
+      
     } else {
-      // 4. 資料番号以外なら：運営用として時間を変更
-      const mm=parseInt(cmd.slice(0,2)), ss=parseInt(cmd.slice(2,4));
-      if(mm<=99 && ss<=59){
-        time=mm*60+ss;
+      // 3-B. それ以外の数字なら時間変更
+      const mm = parseInt(cmd.slice(0,2));
+      const ss = parseInt(cmd.slice(2,4));
+      if(mm <= 99 && ss <= 59){
+        time = mm * 60 + ss;
         updateTimer();
-        warned10min=time<600; warned5min=time<300; warned1min=time<60;
-        if(time<=300 && !bgmSpedUp) speedUpBgm();
+        warned10min = time < 600;
+        warned5min = time < 300;
+        warned1min = time < 60;
+        if(time <= 300 && !bgmSpedUp) speedUpBgm();
+        log(`SYSTEM :: タイムラインを ${mm}分${ss}秒 に変更しました`);
       }
-      input.value='';
     }
-    isCommandProcessing=false; return;
+
+    // ★重要：ここで処理を終了させる（これがないと下の「コマンドが存在しません」まで行ってしまう）
+    input.value = '';
+    isCommandProcessing = false;
+    return; 
   }
-  log(`<span style="color:#fbbf24">SYSTEM :: 「${cmd}」 入力確認</span>`);
-  await showTempMessage('COMMAND','解析中: '+cmd,'yellow',800);
-  const known=['こいぬ','こたつ','しまね','しまうま','うみ','とりい'];
+
+  // --- 以降、文字コマンド（こいぬ、うみ等）の判定 ---
+  await showTempMessage('COMMAND', '解析中: ' + cmd, 'yellow', 800);
+  const known = ['こいぬ','こたつ','しまね','しまうま','うみ','とりい','すきっぷ'];
+  // ...（以下略）
   if(!known.includes(cmd)){
     log('SYSTEM :: 該当コマンドなし');input.value='';
     await showTempMessage('COMMAND ERROR','コマンドが存在しません','red');
