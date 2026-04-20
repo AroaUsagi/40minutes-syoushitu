@@ -812,22 +812,22 @@ async function sendCommand(){
   }
   // 裏コマンド（ドキュメント3のまま変更なし）
 
- if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;return;}
+if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;return;}
 
   if(/^\d{4}$/.test(cmd)){
-    // 1. まず解析中メッセージを出す
+    // 1. まず共通の解析演出を出す
     await showTempMessage('COMMAND', '解析中: ' + cmd, 'yellow', 800);
 
-    // 資料番号を直接リストにする（これが一番エラーが起きず確実です）
+    // 2. 資料番号を直接指定（normalizeやRESOURCE_NUMBERSに頼らないことでエラーを防ぐ）
     const res = ['8472', '5394', '3928', '6150', '2085', '7416'];
 
     if(res.includes(cmd)){
-      // 2. 資料番号だった場合：他のコマンドミスと同じ演出
-      log('SYSTEM :: 該当コマンドなし'); 
+      // 3. 資料番号だった場合：ログとポップアップで警告を表示
+      log(`<span style="color:#ef4444">SYSTEM :: ERROR :: 資料番号 [${cmd}] は「パスワード欄」に入力してください</span>`);
       input.value='';
-      await showTempMessage('COMMAND ERROR', 'コマンドが存在しません', 'red', 2000);
+      await showTempMessage('COMMAND ERROR', '資料番号はパスワード欄へ', 'red', 2000);
     } else {
-      // 3. 資料番号以外なら：運営用として時間を変更
+      // 4. 資料番号以外なら：運営用として時間を変更
       const mm=parseInt(cmd.slice(0,2)), ss=parseInt(cmd.slice(2,4));
       if(mm<=99 && ss<=59){
         time=mm*60+ss;
