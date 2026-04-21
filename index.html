@@ -824,9 +824,9 @@ if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;re
 
     if(resourceList.includes(cmd)){
       // 3-A. 資料番号と一致した場合
-      log(`SYSTEM :: 資料番号 [${cmd}] を検知 -> パスワード欄へ誘導`);
+      log(`<span style="color:#ef4444">SYSTEM :: ERROR :: 資料番号 [${cmd}] は「パスワード欄」に入力してください</span>`);
       await showTempMessage('COMMAND ERROR', '資料番号はパスワード欄へ', 'red', 2000);
-      
+  
     } else {
       // 3-B. それ以外の数字なら時間変更
       const mm = parseInt(cmd.slice(0,2));
