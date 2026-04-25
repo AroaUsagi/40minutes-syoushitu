@@ -835,7 +835,7 @@ if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;re
         if(time <= 300 && !bgmSpedUp) speedUpBgm();
       }
     }
-
+    
     // ★重要：ここで処理を終了させる（これがないと下の「コマンドが存在しません」まで行ってしまう）
     input.value = '';
     isCommandProcessing = false;
