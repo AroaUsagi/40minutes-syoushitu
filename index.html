@@ -895,7 +895,7 @@ if(cmd==='すきっぷ'){skipIntro();input.value='';isCommandProcessing=false;re
       document.getElementById('statusText').innerText='消失装置 起動中';
       deviceRunning=true;updateMonitor();startTimer();
       playHorrorSound2();
-      await showTempMessage('!! 消失装置 起動 !!','30分後 ラボごと消失 / 生存確率 0%','red',4000);
+      await showTempMessage('!! 消失装置 起動 !!','40分後 ラボごと消失 / 生存確率 0%','red',4000);
     }else{
       if(vaultOpen){log('SYSTEM :: 金庫 既に開放中');await showTempMessage('金庫','すでに開放されています','yellow');}
       else{vaultOpen=true;log('SYSTEM :: 金庫 開放');await showTempMessage('金庫 開放','アクセス許可','yellow');}
